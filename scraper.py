@@ -1,8 +1,7 @@
 from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup #bs4 is the package, and BeautifulSoup is a class inside it
-
-import pandas as pd # referring to the pandas library as pd to save time typing
-from tqdm import tqdm #A simple library that draws a progress bar in your terminal (helwa dyh)
+from bs4 import BeautifulSoup
+import pandas as pd
+from tqdm import tqdm
 
 year = input("Enter the year you want (ex: 2000): ")
 url = f"https://www.imdb.com/search/title/?release_date={year}-01-01,{year}-12-31&title_type=feature"
