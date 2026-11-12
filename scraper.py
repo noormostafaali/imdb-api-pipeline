@@ -9,20 +9,23 @@ url = f"https://www.imdb.com/search/title/?release_date={year}-01-01,{year}-12-3
 print(f"Fetching data for {year} using a real browser...")
 
 with sync_playwright() as p:
-    # Launch invisible Chromium browser and hide the fact that it's a bot
+    # The stealth arguments
     browser = p.chromium.launch(
         headless=True, 
-        args=['--disable-blink-features=AutomationControlled']
+        args=[
+            '--disable-blink-features=AutomationControlled',
+            '--window-size=1920,1080'
+        ]
     ) 
     page = browser.new_page()
     
     print("Navigating to IMDb...")
     page.goto(url, wait_until="domcontentloaded")
     
-    print("Waiting 5 seconds for WAF challenge...")
-    page.wait_for_timeout(5000) 
+    print("Waiting 7 seconds for WAF challenge...")
+    page.wait_for_timeout(7000) 
     
-    # Save the screenshot and HTML for debugging
+    # Save the screenshot and HTML
     page.screenshot(path="debug_screenshot.png")
     html_content = page.content()
     
@@ -33,30 +36,22 @@ with sync_playwright() as p:
 
 print("Screenshot and HTML saved for debugging.")
 
-# Parse the HTML
 soup = BeautifulSoup(html_content, "html.parser")
-
-# Find the movie titles (IMDb's h3 class)
 movieList = soup.find_all('h3', class_='ipc-title__text')
 
-# Check if we got blocked
 if len(movieList) == 0:
-    print("\n🚨 ERROR: Found 0 movies. Amazon's AWS WAF likely blocked us with a 403 Forbidden.")
-    print("Check debug_screenshot.png and debug_playwright.html to see what happened.")
+    print("\n🚨 ERROR: Found 0 movies. Amazon's AWS WAF blocked us again.")
 else:
     print(f"Found {len(movieList)} movies on the page!")
-    
     movies = []
     i = 1
     
     for tag in tqdm(movieList):
         raw_text = tag.text
-        # Clean the text to remove the index (e.g., "1. ")
         movie_title = raw_text.split('. ', 1)[1] if '. ' in raw_text else raw_text
         movies.append({'Index': i, 'Movie': movie_title})
         i += 1
 
-    # Save to Excel
     df = pd.DataFrame(movies)
     df.to_excel(f'movies_{year}.xlsx', index=False)
     print(f"Successfully saved {len(movies)} movies to movies_{year}.xlsx!")
