@@ -181,3 +181,5 @@ cython_debug/
 .cursorindexingignore
 
 debug_page.html
+
+debug_playwright.html
