@@ -51,10 +51,24 @@ Identify the pattern: You look at that URL and say, "Okay, the URL takes paramet
 You can see exactly what URLs your browser is requesting behind the scenes)"""
 
 # 3. Disguise our script as a real Chrome browser
-headers = {
+"""headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 }
 # to make the website think its a  real human chrome browser not a bot ( trying to not instatly get banned)
+"""
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Cache-Control': 'max-age=0'
+}
 
 print(f" Fetching data for {year}...") # the f before , is  f-string 
 """
@@ -62,7 +76,7 @@ whats f string ? (formatted string literal)
 It tells Python, "Hey, look inside the {} brackets
  and insert the value of those variables.
 """
-
+"""
 # 4
 response = requests.get(url, headers=headers)
 #response holds the entire raw HTML code of the IMDb webpage as a giant string
@@ -72,6 +86,15 @@ response = requests.get(url, headers=headers)
 # ADDING DEBUG LINES
 print(f"Status Code: {response.status_code}")
 print(f"First 500 chars of response: {response.text[:500]}")
+"""
+
+# 4. Use a Session instead of a direct request
+session = requests.Session()
+response = session.get(url, headers=headers)
+
+# --- Debug Lines ---
+print(f"Status Code: {response.status_code}")
+print(f"Length of HTML: {len(response.text)} chars")
 
 # now to use BeautifulSoup to act as a highlighter.
 
@@ -95,3 +118,20 @@ wrapping every movie has that specific class
 print(f"Found {len(movieList)} movies on the page!")
 
 # len prints length of the list  # c starts at 1 not 0 
+
+
+
+"""
+Why is IMDb giving us a 202 and empty text?
+When you visit a site with Chrome, your browser and the server do a complex "handshake". The browser sends a TLS fingerprint (a unique signature of how Chrome talks to the network), and a bunch of headers (Accept-Language, Sec-Fetch, etc.).
+
+When Python's requests library asks for a page, it sends a very basic fingerprint. Amazon's security (AWS WAF) looks at it and says, "You say you're Chrome, but your fingerprint says you're a Python script. Nice try. Here's a 202 with an empty body to waste your time."
+
+3. The Attack Plan
+We are going to upgrade our script to look exactly like a real browser. We will:
+
+Use a requests.Session() (this handles cookies automatically, just like a real browser).
+
+Add all the extra headers Chrome normally sends
+"""
+
